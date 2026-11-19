@@ -9,13 +9,14 @@ usage : bash ~/agence-video/outils/atelier_colab.sh <commande> …     (le PC ne
                               SANS='bruitages*.wav musique.wav' : sans ces fichiers (ceux que l'atelier refait)
   lance <dossier> "<cmd>"     lance une commande là-bas, depuis ce dossier de l'agence (chemins ~/… identiques au PC) ; journal affiché à la fin
   whisper <dossier 03-voix>…  contrôle whisper de chaque phrase (→ <dossier>/controle-colab.txt là-bas ; le rapatrier ensuite)
+  moteurs                     met à jour là-bas les outils, bruitages et styles (dépôt public, après un commit poussé)
   rapatrie <chemin>…          ramène des dossiers ou fichiers sur le PC (même chemin)
   etat                        la machine est-elle allumée ? que contient-elle ?
   stop                        éteint la machine (à la fin de la séance)
 
 exemple (son, miniatures et copies téléphone des extraits L006, sans rien calculer sur le PC) :
   A=bash ~/agence-video/outils/atelier_colab.sh ; E=nan_serieux/fr/episodes/L006-black-friday
-  $A start ; $A envoie outils nan_serieux/sons nan_serieux/style-pixel $E
+  $A start ; $A envoie $E      (les outils, bruitages et styles sont déjà là-bas : start les télécharge de GitHub)
   $A envoie --mp4 $E/09-export/E1-muet.mp4      (inutile si rendu_colab.sh a rendu sur l'atelier : COLAB_SESSION=atelier)
   $A lance $E "RENDER=0 sh 09-export/extraits.sh" ; $A rapatrie $E/L006-Extraits
 
@@ -51,7 +52,10 @@ rm -rf .venv; mkdir -p .venv/bin && ln -sf "$(command -v python3)" .venv/bin/pyt
 .venv/bin/python -m earshot doctor --fetch 2>&1 | tail -1; .venv/bin/python -c 'import earshot' || { echo 'Earshot raté'; exit 1; }
 /root/lemo-opuscar/.venv/bin/python -c 'import numpy, scipy, soundfile' || { echo 'Lemo Python raté'; exit 1; }
 mkdir -p /root/.claude/skills; ln -sfn /root/earshot/skills/real-sound /root/.claude/skills/real-sound; ln -sfn /root/earshot/skills/earshot /root/.claude/skills/earshot
-mkdir -p /root/agence-video; echo "atelier ok"
+mkdir -p /root/agence-video/nan_serieux; cd /root/agence-video   # the public engines straight from GitHub (seconds), at the same paths as on the PC (2026-11-20)
+rm -rf moteurs outils nan_serieux/sons nan_serieux/style-pixel nan_serieux/style-hd2d; git clone -q --depth 1 https://github.com/Nouhouayikevin/agence-video-moteurs moteurs || { echo 'moteurs : clone raté'; exit 1; }
+ln -s moteurs/outils outils; for d in sons style-pixel style-hd2d; do ln -s ../moteurs/$d nan_serieux/$d; done
+echo "atelier ok"
 PREPA
   "$C" upload -s $S "$T/prepa.sh" /content/prepa.sh >/dev/null
   p=$(cjob prepa 'bash /content/prepa.sh 2>&1 | tail -15'); echo "$p"; echo "$p" | grep -q 'atelier ok' || { echo "ERREUR : préparation de l'atelier"; exit 1; } ;;
@@ -79,6 +83,7 @@ rapatrie)
     for q in $(echo "$o" | grep "^q$$\."); do ok=0; for k in 1 2 3; do "$C" download -s $S /content/$q "$T/$q" >/dev/null && { ok=1; break; }; sleep 5; done; [ $ok = 1 ] || { echo "ERREUR : rapatriement de $r ($q), 3 essais"; exit 1; }; done   # a 40 MB piece can fail once (2026-11-19): 3 tries
     cat "$T"/q$$.* | tar xz -C "$HOME" && x "!rm -f /content/q$$.*" >/dev/null && echo "← $r" || { echo "ERREUR : déballage de $r"; exit 1; }
   done ;;
+moteurs) x "!cd /root/agence-video/moteurs && git pull -q --ff-only && git log --oneline -1" ;;   # after a change to the tools pushed to GitHub: the machine takes it in seconds
 etat) "$C" sessions 2>&1 | tail -3; x '!ls /root /root/agence-video 2>&1 | head; nvidia-smi --query-gpu=name,utilization.gpu,memory.used --format=csv' ;;
 stop) "$C" stop -s $S ;;
 *) echo "commande inconnue : $cmd (voir --help)"; exit 2 ;;
