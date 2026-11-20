@@ -38,7 +38,7 @@ extraits() {   # ext.json made THERE (it mixes the hook sounds), brought back an
 
 case $temps in
 fixes)
-  prepare; machine; extraits; $A envoie "$E/05-rendu/film" $(for l in $LSOS; do echo "$E/$l/05-rendu/film"; done) | grep -i erreur || true
+  prepare; machine; extraits; $A envoie "$E/04-decoupage" "$E/05-rendu/film" $(for l in $LSOS; do echo "$E/$l/05-rendu/film"; done) | grep -i erreur || true   # 04-decoupage too: on a new machine the « already sent » mark lied and fixes.py found no découpage (2026-11-20)
   log "images fixes de chaque plan : $V"; $A lance "$E" "python3 ~/agence-video/outils/fixes.py $V 2>&1 | tail -15" | tail -16
   mkdir -p "$E/07-revue-technique/planches-fixes"; $A rapatrie "$E/07-revue-technique/planches-fixes" | tail -1
   log "À RELIRE : $E/07-revue-technique/planches-fixes/ (une planche par 6 plans). Corriger, puis refaire « fixes » sur les vidéos touchées." ;;
