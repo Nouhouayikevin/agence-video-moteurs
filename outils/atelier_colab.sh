@@ -33,7 +33,8 @@ cmd=$1; shift
 case "$cmd" in
 start)
   # CPU=1: a machine without graphics card (sound, whisper is slower, no 3D) — it can run beside the GPU machine that renders
-  "$C" sessions 2>&1 | grep -q "\[$S\]" || { if [ "$CPU" = 1 ]; then "$C" new -s $S | tail -1; else "$C" new -s $S --gpu T4 | tail -1; fi; }
+  "$C" sessions 2>&1 | grep -q "\[$S\]" || { if [ "$CPU" = 1 ]; then o=$("$C" new -s $S 2>&1); else o=$("$C" new -s $S --gpu T4 2>&1); fi; echo "$o" | tail -1
+    echo "$o" | grep -q READY || { echo "ERREUR : Google refuse la machine ($(echo "$o" | grep -o 'Service Unavailable' | head -1)) : quota épuisé ? → bash outils/changer_compte_colab.sh, ou CPU=1 pour une machine sans carte"; exit 1; }; }   # stop at once (2026-11-20: it went on into 3 useless tries)
   SETUP=$(ls -d ~/.claude/plugins/cache/*/lemo-opuscar/*/skills/lemo-opuscar/scripts/setup.sh | head -1)
   "$C" upload -s $S "$SETUP" /content/setup.sh >/dev/null
   cat > "$T/prepa.sh" <<'PREPA'
