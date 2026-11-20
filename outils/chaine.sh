@@ -13,7 +13,7 @@ E=$(realpath "$1"); temps=$2; shift 2 || { echo "usage : bash outils/chaine.sh <
 [ -f "$E/04-decoupage/decoupage.json" ] || { echo "ERREUR : $E n'est pas un épisode découpé (04-decoupage/decoupage.json manque)"; exit 2; }
 G=$HOME/agence-video; O=$G/outils; export COLAB_SESSION=${COLAB_SESSION:-atelier}; A="bash $O/atelier_colab.sh"
 N=$(basename "$E"); C=${N%%-*}
-LSOS=$(cd "$E" && for l in LSO[0-9]; do [ -f "$l/05-rendu/build.sh" ] && printf "%s " "$l"; done 2>/dev/null)   # only the LSO whose film exists (2026-11-20: a script-only LSO broke « fixes »); EXTS=$(cd "$E" && python3 -c "import json;print(' '.join(json.load(open('05-rendu/film/ext.json'))))" 2>/dev/null || true)
+LSOS=$(cd "$E" && for l in LSO[0-9]; do [ -f "$l/05-rendu/build.sh" ] && printf "%s " "$l"; done 2>/dev/null; true)   # only the LSO whose film exists (2026-11-20: a script-only LSO broke « fixes »); EXTS=$(cd "$E" && python3 -c "import json;print(' '.join(json.load(open('05-rendu/film/ext.json'))))" 2>/dev/null || true)
 V=${*:-long $EXTS $LSOS}
 log() { echo "$(date +%H:%M) $*"; }
 
