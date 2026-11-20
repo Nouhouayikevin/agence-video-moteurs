@@ -15,13 +15,13 @@ n=$(python3 -c "import math;print(math.ceil($DUR/$STEP))"); echo "$(date +%H:%M)
 for i in $(seq 0 $((n - 1))); do
   p=$P/$(printf %03d $i).mp4; [ -s "$p" ] && continue
   a=$((i * STEP)); b=$(python3 -c "print(min($DUR, $(( (i + 1) * STEP ))))")
-  for essai in 1 2 3 4 5; do
+  for essai in $(seq 12); do   # 12 tries: the PC network drops for ~10 min at times (2026-11-20)
     machine || { sleep 60; continue; }
     if EXTRA="--from $a --to $b" sh "$O/rendu_colab.sh" "$film" "$p@$sz${q:+@$q}" > "$P/journal-$i.txt" 2>&1 && [ -s "$p" ]; then echo "$(date +%H:%M) morceau $((i + 1))/$n ok"; break; fi
-    echo "$(date +%H:%M) morceau $((i + 1))/$n raté (essai $essai) : $(grep -m1 ERREUR "$P/journal-$i.txt" | cut -c1-120)"; rm -f "$p"
+    echo "$(date +%H:%M) morceau $((i + 1))/$n raté (essai $essai) : $(grep -m1 ERREUR "$P/journal-$i.txt" | cut -c1-120)"; rm -f "$p"; sleep 60
     "$C" stop -s $COLAB_SESSION >/dev/null 2>&1   # a lost machine: start a new one
   done
-  [ -s "$p" ] || { echo "ERREUR : morceau $((i + 1)) impossible après 5 essais"; exit 1; }
+  [ -s "$p" ] || { echo "ERREUR : morceau $((i + 1)) impossible après 12 essais"; exit 1; }
 done
 "$C" stop -s $COLAB_SESSION >/dev/null 2>&1
 (cd "$P" && ls [0-9][0-9][0-9].mp4 | sed "s/.*/file '&'/" > liste.txt && ffmpeg -v error -y -f concat -safe 0 -i liste.txt -c copy "$out") || { echo "ERREUR : collage"; exit 1; }
