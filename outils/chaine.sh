@@ -13,7 +13,7 @@ E=$(realpath "$1"); temps=$2; shift 2 || { echo "usage : bash outils/chaine.sh <
 [ -f "$E/04-decoupage/decoupage.json" ] || { echo "ERREUR : $E n'est pas un épisode découpé (04-decoupage/decoupage.json manque)"; exit 2; }
 G=$HOME/agence-video; O=$G/outils; export COLAB_SESSION=${COLAB_SESSION:-atelier}; A="bash $O/atelier_colab.sh"
 N=$(basename "$E"); C=${N%%-*}
-LSOS=$(cd "$E" && ls -d LSO[0-9] 2>/dev/null | tr '\n' ' '); EXTS=$(cd "$E" && python3 -c "import json;print(' '.join(json.load(open('05-rendu/film/ext.json'))))" 2>/dev/null || true)
+LSOS=$(cd "$E" && for l in LSO[0-9]; do [ -f "$l/05-rendu/build.sh" ] && printf "%s " "$l"; done 2>/dev/null)   # only the LSO whose film exists (2026-11-20: a script-only LSO broke « fixes »); EXTS=$(cd "$E" && python3 -c "import json;print(' '.join(json.load(open('05-rendu/film/ext.json'))))" 2>/dev/null || true)
 V=${*:-long $EXTS $LSOS}
 log() { echo "$(date +%H:%M) $*"; }
 
@@ -24,7 +24,7 @@ machine() {   # the GPU workshop on, with the episode there (sent once per sessi
 }
 prepare() {   # light file work on the PC: syntax, comments, subtitles, the LSO films (no rendering)
   for f in "$E"/05-rendu/film/*.js "$E"/LSO*/05-rendu/film/*.js; do [ -f "$f" ] || continue; t=$(mktemp --suffix=.mjs); cp "$f" "$t"; node --check "$t" >/dev/null || { echo "ERREUR : syntaxe de $f"; rm "$t"; exit 1; }; rm "$t"; done
-  python3 -I "$G/nan_serieux/style-pixel/code/commentaires.py" "$E"/05-rendu/film/*.js "$E"/LSO*/05-rendu/film/*.js | tail -2
+  python3 -I "$G/nan_serieux/style-pixel/code/commentaires.py" "$E"/05-rendu/film/*.js $(for l in $LSOS; do echo "$E/$l/05-rendu/film/"*.js; done) | tail -2
   cp "$E/04-decoupage/decoupage.json" "$E/05-rendu/film/"; (cd "$E" && python3 -I 05-rendu/subs.py >/dev/null)
   for l in $LSOS; do sh "$E/$l/05-rendu/build.sh" prepa >/dev/null; done
 }
