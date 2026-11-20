@@ -36,7 +36,8 @@ tar -czf "$T/ph.tgz" -T "$T/liste"; colab upload -s $S "$T/ph.tgz" /content/voix
 colab install -s $S voxcpm faster-whisper nvidia-cublas-cu12 'nvidia-cudnn-cu12==9.*' > /dev/null   # whisper needs the CUDA 12 libraries
 colab upload -s $S $O/voix_colab.py /content/voix_colab.py; colab upload -s $S $O/whisper_colab.py /content/whisper_colab.py
 cjob voix 'cd /content && python3 voix_colab.py'   # detached there, followed through its log (hours for a long voice: no connection to freeze)
-cjob whisper 'cd /content && python3 whisper_colab.py'
-cx '!cd /content/voix/out && tar -czf /content/voix/out.tgz *.wav' > /dev/null; colab download -s $S /content/voix/out.tgz "$T/out.tgz"; tar -xzf "$T/out.tgz" -C phrases   # one archive back too
+# the sentences come back BEFORE whisper (2026-11-20: the machine died during whisper, three times, and took the finished voice with it)
+cx '!cd /content/voix/out && tar -czf /content/voix/out.tgz *.wav' > /dev/null; colab download -s $S /content/voix/out.tgz "$T/out.tgz"; tar -xzf "$T/out.tgz" -C phrases   # one archive back
+cjob whisper 'cd /content && python3 whisper_colab.py' || echo "(whisper perdu : phrases gardées, contrôle à refaire)"
 colab download -s $S /content/voix/controle.txt controle-colab.txt
 echo "voix_colab : fini"
