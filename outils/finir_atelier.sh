@@ -28,5 +28,5 @@ out=$($A lance "$R" "for n in $need; do [ -e \$n ] || echo \"MANQUE là-bas : \$
 echo "$out" | grep -q '^PAQUET-OK' || { echo "$out" | tail -30; echo "ERREUR : $l $x pas fini là-bas, rien n'est rangé"; exit 1; }
 echo "$out" | tail -3
 $A rapatrie fin-$l-$x.tar | tail -1
-cd "$R" && rm -f $f && tar xf ~/agence-video/fin-$l-$x.tar && rm ~/agence-video/fin-$l-$x.tar && mkdir -p $dest && mv $f $dest/
+cd "$R" && rm -f $f && tar xf ~/agence-video/fin-$l-$x.tar --no-absolute-names $f $tel && rm ~/agence-video/fin-$l-$x.tar && mkdir -p $dest && mv $f $dest/
 echo "$l $x : $(ffprobe -v error -show_entries format=duration -of csv=p=0 $dest/$C-$x.mp4) s, rangé dans $dest ($(date -r $dest/$C-$x.mp4 +%d-%H:%M))"

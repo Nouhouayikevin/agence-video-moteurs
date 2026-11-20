@@ -81,7 +81,8 @@ rapatrie)
   for a in "$@"; do r=$(rel "$a") || exit 2
     o=$(x "!tar czf - -C /root $r | split -b 40M - /content/q$$. && ls /content | grep '^q$$\\.'") ; echo "$o" | grep -q "^q$$\." || { echo "ERREUR : préparation de $r : $o"; exit 1; }
     for q in $(echo "$o" | grep "^q$$\."); do ok=0; for k in 1 2 3; do "$C" download -s $S /content/$q "$T/$q" >/dev/null && { ok=1; break; }; sleep 5; done; [ $ok = 1 ] || { echo "ERREUR : rapatriement de $r ($q), 3 essais"; exit 1; }; done   # a 40 MB piece can fail once (2026-11-19): 3 tries
-    cat "$T"/q$$.* | tar xz -C "$HOME" && x "!rm -f /content/q$$.*" >/dev/null && echo "← $r" || { echo "ERREUR : déballage de $r"; exit 1; }
+    bad=$(cat "$T"/q$$.* | tar tz | grep -v "^$r\(/\|$\)" | head -1); [ -z "$bad" ] || { echo "ERREUR : le paquet de $r contient « $bad » (hors du dossier demandé), rien n'est déballé"; exit 1; }
+    cat "$T"/q$$.* | tar xz --no-absolute-names -C "$HOME" && x "!rm -f /content/q$$.*" >/dev/null && echo "← $r" || { echo "ERREUR : déballage de $r"; exit 1; }
   done ;;
 moteurs) x "!cd /root/agence-video/moteurs && git pull -q --ff-only && git log --oneline -1" ;;   # after a change to the tools pushed to GitHub: the machine takes it in seconds
 etat) "$C" sessions 2>&1 | tail -3; x '!ls /root /root/agence-video 2>&1 | head; nvidia-smi --query-gpu=name,utilization.gpu,memory.used --format=csv' ;;
