@@ -4,7 +4,7 @@ Des scripts pour les gestes qui reviennent à chaque vidéo (demande de Kev, 202
 
 | Outil | Ce qu'il fait | Exemple |
 |---|---|---|
-| `chaine.sh` | **la chaîne d'un épisode** (étapes 5 à 9) en 4 temps : `fixes` (image au milieu de chaque plan, à relire), `rendu` (un seul rendu, courtes d'abord), `finition` (son, mux, miniatures, copies téléphone, rangement), `controles` (bandes, sous-titres, physique, Earshot, synchro, à relire) | `bash outils/chaine.sh <épisode> fixes` |
+| `chaine.sh` | **BÊTA** — **la chaîne d'un épisode** (étapes 5 à 9) en 4 temps : `fixes` (image au milieu de chaque plan, à relire), `rendu` (un seul rendu, courtes d'abord), `finition` (son, mux, miniatures, copies téléphone, rangement), `controles` (bandes, sous-titres, physique, Earshot, synchro, à relire) | `bash outils/chaine.sh <épisode> fixes` |
 | `fixes.py` | (sur la machine Google, lancé par chaine.sh) les planches d'images fixes, une par plan | — |
 | `rendu_colab.sh` | rend une ou plusieurs vidéos sur la machine Google (carte T4), le PC ne calcule pas ; tout dans un seul appel ; `--help` | `sh outils/rendu_colab.sh 05-rendu/film 05-rendu/L006-rendu-muet.mp4` (depuis l'épisode) |
 | `atelier_colab.sh` | **l'atelier Google** : une machine avec Lemo + instruments, Earshot, whisper, ffmpeg, et les fichiers de l'agence aux mêmes chemins que sur le PC ; on y envoie l'épisode, on y lance son, mux, miniatures, contrôles, on rapatrie les finales (Kev, 2026-11-19 : le PC n'est qu'une télécommande) ; `CPU=1` : machine sans carte graphique, à côté d'une machine qui rend ; `--help` | `bash outils/atelier_colab.sh start` puis `envoie`, `lance`, `whisper`, `rapatrie`, `stop` |

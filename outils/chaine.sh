@@ -1,5 +1,5 @@
 #!/bin/bash
-# La chaîne de production d'un épisode après le découpage (étapes 5 à 9), sur les machines Google, en 4 temps qui s'arrêtent là où Claude doit relire.
+# BÊTA (2026-11-20, pas encore passée sur un épisode entier : la corriger à chaque défaut vu, puis retirer ce mot). La chaîne de production d'un épisode après le découpage (étapes 5 à 9), sur les machines Google, en 4 temps qui s'arrêtent là où Claude doit relire.
 # Kev, 2026-11-20 : « je lance et après rien n'a été lancé » — une seule commande par temps, testée, au lieu de gestes faits à la main.
 #   bash outils/chaine.sh <épisode> fixes      → images fixes au milieu de chaque plan (longue, extraits, LSO) : 07-revue-technique/planches-fixes/ — À RELIRE, corriger, refaire
 #   bash outils/chaine.sh <épisode> rendu      → un seul rendu de tout (extraits et LSO d'abord, longue en dernier), sur la machine « atelier »
