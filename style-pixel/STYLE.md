@@ -53,7 +53,7 @@ Side views of the world (field, track, road), aerial "maquette" views, close-ups
 - UI white used for clouds stays white in the dark → world whites use index 19.
 - Text near the end of a shot fails reading time → carry it into the next shot (overlay list), or move the subject.
 - Subjects drawn below y≈205 hide behind the subtitle box.
-- Real flags and logos: use generic pennants and invented mastheads.
+- Real flags, logos and newspaper mastheads are allowed when the story names them (Kev, 2026-11-20), redrawn in our pixel style.
 - No gore: bullets miss, animals run.
 - Font: before rendering, check that **every character of the script** exists in `font.js` (œ Œ Ï ✔ < © were once missing: missing glyphs vanish silently).
 - Subtitles come from `02-script/voix-off.md` (numbers in digits), **never** from `03-voix/texte-envoye.txt` (numbers in words, for the voice only).
