@@ -46,7 +46,7 @@ for a in "$@"; do
   [ -n "$F" ] || { echo "ERREUR : donner le dossier du film avant « $a »"; exit 2; }
   o=${a%%@*}; r=${a#"$o"}; r=${r#@}; sz=${r%%@*}; q=${r#"$sz"}; q=${q#@}; sz=${sz:-1920x1080}
   echo "== $o ($sz${q:+, $q}) : rendu sur Google…"; t=$(date +%s)
-  rend() { cjob "rendu$$-$n-$1-$(basename "$o" .mp4)" "cd /content/lemo && LD_LIBRARY_PATH=/usr/lib64-nvidia LEMO_ANGLE=vulkan node core/render/video.mjs $F --fps 24 --workers $1 --size $sz ${q:+--q '$q'} --out /content/out.mp4 2>&1 | tr '\\r' '\\n' | grep -E 'note|done|rror|lost|stopped|Timeout' | tail -4"; }   # detached there, followed through its log
+  rend() { cjob "rendu$$-$n-$1-$(basename "$o" .mp4)" "cd /content/lemo && LD_LIBRARY_PATH=/usr/lib64-nvidia LEMO_ANGLE=vulkan node core/render/video.mjs $F --fps 24 --workers $1 --size $sz ${q:+--q '$q'} $EXTRA --out /content/out.mp4 2>&1 | tr '\\r' '\\n' | grep -E 'note|done|rror|lost|stopped|Timeout' | tail -4"; }   # detached there, followed through its log
   w=${WORKERS:-4}; out=$(rend $w) || true
   echo "$out" | grep -q "READY never" && [ $w -gt 2 ] && { echo "   (page trop lente à $w rendus parallèles : relancé à 2)"; out=$(rend 2) || true; }   # 2026-11-19: a heavy LSO film timed out at 4 workers
   echo "$out" | grep -q -i 'software' && { echo "ERREUR : rendu logiciel (pas de carte graphique) : $out"; exit 1; }
