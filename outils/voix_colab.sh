@@ -29,12 +29,14 @@ C=$HOME/.local/bin/colab; . $O/colab_lib.sh   # cx / cjob: no command can hang a
 cx '!mkdir -p /content/voix/phrases /content/voix/out' > /dev/null
 colab upload -s $S "$REF" /content/voix/ref.wav; colab upload -s $S "$T/ref.txt" /content/voix/ref.txt
 [ -f seeds.txt ] && colab upload -s $S seeds.txt /content/voix/seeds.txt
+# all the sentences to make in ONE archive (2026-11-20: 400 uploads one by one took 10 min, then the folder vanished there, « Upload failed »)
 for f in phrases/*.txt; do n=$(basename "$f" .txt); k=$(expr "$n" + 0 2>/dev/null || echo 0)
-  { [ -s "phrases/$n.wav" ] || [ "$k" -lt "$A" ] || [ "$k" -gt "$B" ]; } && continue; colab upload -s $S "$f" /content/voix/phrases/$n.txt; done
+  { [ -s "phrases/$n.wav" ] || [ "$k" -lt "$A" ] || [ "$k" -gt "$B" ]; } && continue; echo "$f"; done > "$T/liste"
+tar -czf "$T/ph.tgz" -T "$T/liste"; colab upload -s $S "$T/ph.tgz" /content/voix/ph.tgz; cx '!cd /content/voix && tar -xzf ph.tgz' > /dev/null
 colab install -s $S voxcpm faster-whisper nvidia-cublas-cu12 'nvidia-cudnn-cu12==9.*' > /dev/null   # whisper needs the CUDA 12 libraries
 colab upload -s $S $O/voix_colab.py /content/voix_colab.py; colab upload -s $S $O/whisper_colab.py /content/whisper_colab.py
 cjob voix 'cd /content && python3 voix_colab.py'   # detached there, followed through its log (hours for a long voice: no connection to freeze)
 cjob whisper 'cd /content && python3 whisper_colab.py'
-for w in $(colab ls -s $S /content/voix/out); do colab download -s $S /content/voix/out/$w phrases/$w; done
+cx '!cd /content/voix/out && tar -czf /content/voix/out.tgz *.wav' > /dev/null; colab download -s $S /content/voix/out.tgz "$T/out.tgz"; tar -xzf "$T/out.tgz" -C phrases   # one archive back too
 colab download -s $S /content/voix/controle.txt controle-colab.txt
 echo "voix_colab : fini"
