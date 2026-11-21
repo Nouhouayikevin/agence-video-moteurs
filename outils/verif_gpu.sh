@@ -11,7 +11,7 @@ en_cours=$(timeout 60 "$C" sessions 2>&1 | grep -i "T4\|GPU")
 [ -n "$en_cours" ] && { echo "GPU OK : une machine à carte graphique tourne déjà pour nous :"; echo "$en_cours"; exit 0; }
 o=$(timeout 180 "$C" new -s $S --gpu T4 2>&1); timeout 60 "$C" stop -s $S >/dev/null 2>&1
 if echo "$o" | grep -q READY; then echo "GPU OK : Google donne une carte graphique T4 sur ce compte."; exit 0; fi
-if echo "$o" | grep -qi "auth\|token\|credential\|login"; then echo "COMPTE NON CONNECTÉ : bash outils/verif_gpu.sh --changer"; exit 2; fi
+if echo "$o" | grep -qi "authorization code\|Aborted"; then echo "COMPTE NON CONNECTÉ : bash outils/verif_gpu.sh --changer"; exit 2; fi
 o2=$(timeout 180 "$C" new -s ${S}c 2>&1); timeout 60 "$C" stop -s ${S}c >/dev/null 2>&1
 if echo "$o2" | grep -q READY; then
   echo "GPU REFUSÉE ($(echo "$o" | grep -o 'Service Unavailable\|quota[^.]*' | head -1)) : le compte marche (machine sans carte OK), mais pas de carte graphique."
