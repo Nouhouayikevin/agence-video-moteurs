@@ -77,8 +77,8 @@ def check(ep, code):
     def need(p, what):
         if not p.exists():
             missing.append(f'{what} : {p.relative_to(ep)}')
-    ext = sorted((ep / f'{code}-Extraits').glob('E*')) if code.startswith('L') else []
-    lso = sorted((ep / f'{code}-LSO').glob('LSO*')) if code.startswith('L') else []
+    ext = sorted((ep / f'{code}-Extraits').glob('E*')) if code[0] in 'LF' else []
+    lso = sorted((ep / f'{code}-LSO').glob('LSO*')) if code[0] in 'LF' else []
     videos = [ep / code] + ext + lso
     for d in videos:
         stem = code if d.name == code else f'{code}-{d.name}'
@@ -89,10 +89,10 @@ def check(ep, code):
             need(mp4[0].with_suffix('.srt'), 'sous-titres .srt')
         need(d / f'{stem}-miniature.jpg', 'miniature')
         need(d / f'{stem}-textes.md', 'fichier de textes')
-    n_ext, n_lso = (6, 4) if code.startswith('L') and int(code[1:]) >= 4 else (2, 0)   # plan 6-4-4 from L004 (Kev, 2026-11-10); L001-L003 keep their 2 extracts, no LSO
-    if code.startswith('L') and len(ext) < n_ext:
+    n_ext, n_lso = (8, 2) if code.startswith('F') else (6, 4) if code.startswith('L') and int(code[1:]) >= 4 else (2, 0)   # film: plan 8-2-2 (Kev, 2026-11-20)   # plan 6-4-4 from L004 (Kev, 2026-11-10); L001-L003 keep their 2 extracts, no LSO
+    if code[0] in 'LF' and len(ext) < n_ext:
         missing.append(f'extraits : {len(ext)} trouvés, {n_ext} attendus')
-    if code.startswith('L') and len(lso) < n_lso:
+    if code[0] in 'LF' and len(lso) < n_lso:
         missing.append(f'LSO (shorts originaux de la longue) : {len(lso)} trouvés, {n_lso} attendus')
     for c in carousels(ep, code):
         d = carousel_dir(ep, code, c)
@@ -117,8 +117,8 @@ def main():
         sys.exit(__doc__)
     ep = Path(args[0]).resolve()
     code = ep.name.split('-')[0]
-    if not re.match(r'^[LS]\d{3}$', code):
-        sys.exit(f'{ep.name} : le dossier doit commencer par L001 ou S001')
+    if not re.match(r'^[LFS]\d{3}$', code):
+        sys.exit(f'{ep.name} : le dossier doit commencer par L001, F001 ou S001')
     etat = ep / 'ETAT.md'
     if '--verifier' not in sys.argv:
         if etat.exists() and re.search(r'Étape en cours\s*:\s*terminé', etat.read_text(encoding='utf-8')):
