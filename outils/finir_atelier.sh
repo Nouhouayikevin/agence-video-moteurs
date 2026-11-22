@@ -27,6 +27,7 @@ f="$C-$x.mp4 $C-$x.srt $C-$x-miniature.jpg"
 out=$($A lance "$R" "for n in $need; do [ -e \$n ] || echo \"MANQUE là-bas : \$n\"; done; rm -f $f; $run 2>&1 | tail -25; sh ~/agence-video/outils/controle.sh $C-$x.mp4 | tail -1; tar cf ~/agence-video/fin-$l-$x.tar $f $tel && echo PAQUET-OK")
 echo "$out" | grep -q '^PAQUET-OK' || { echo "$out" | tail -30; echo "ERREUR : $l $x pas fini là-bas, rien n'est rangé"; exit 1; }
 echo "$out" | tail -3
+touch fin-$l-$x.tar   # rapatrie refuse un chemin absent ici (2026-11-22)
 $A rapatrie fin-$l-$x.tar | tail -1
 cd "$R" && rm -f $f && tar xf ~/agence-video/fin-$l-$x.tar $f $tel && rm ~/agence-video/fin-$l-$x.tar && mkdir -p $dest && mv $f $dest/
 echo "$l $x : $(ffprobe -v error -show_entries format=duration -of csv=p=0 $dest/$C-$x.mp4) s, rangé dans $dest ($(date -r $dest/$C-$x.mp4 +%d-%H:%M))"
