@@ -13,6 +13,8 @@ exit 0;; esac
 set -u
 O=$(cd "$(dirname "$0")" && pwd); A="bash $O/atelier_colab.sh"; export COLAB_SESSION=${COLAB_SESSION:-atelier}
 E=$(realpath "$1"); shift; log() { echo "$(date +%H:%M) $*"; }
+[ $# -gt 0 ] || { echo "ERREUR : donner au moins un LSO (LSO1, LSO2…)"; exit 2; }
+for x in "$@"; do [[ $x =~ ^LSO[0-9]+$ ]] || { echo "ERREUR : « $x » n'est pas un nom de LSO (LSO1, LSO2…)"; exit 2; }; done   # before any Google machine is started
 if ! $A lance "$E" "true" >/dev/null 2>&1; then
   timeout 60 "$HOME/.local/bin/colab" stop -s "$COLAB_SESSION" >/dev/null 2>&1; log "machine sans carte"; CPU=1 $A start | tail -1
   log "envoi de l'épisode"; $A envoie "$E" | tail -1

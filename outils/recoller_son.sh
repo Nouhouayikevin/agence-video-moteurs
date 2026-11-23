@@ -11,6 +11,12 @@ AIDE
 exit 0;; esac
 set -eu
 d() { ffprobe -v error -show_entries format=duration -of csv=p=0 "$1"; }
-a=$(d "$1"); b=$(d "$2"); python3 -c "import sys; sys.exit(0 if abs($a-$b) <= .5 else 1)" || { echo "ERREUR : durées différentes : image $a s, son $b s"; exit 1; }
+a=$(d "$1"); b=$(d "$2")
+python3 - "$a" "$b" <<'PY' || { echo "ERREUR : durées différentes ou illisibles : image $a s, son $b s"; exit 1; }   # values passed as data, never as code
+import sys
+try: a, b = float(sys.argv[1]), float(sys.argv[2])
+except ValueError: sys.exit(1)
+sys.exit(0 if abs(a - b) <= .5 else 1)
+PY
 ffmpeg -v error -y -i "$1" -i "$2" -map 0:v -map 1:a -c copy -shortest "$3"
 echo "durée : $(d "$3") s"; ffmpeg -hide_banner -vn -i "$3" -af ebur128=peak=true -f null - 2>&1 | grep -A12 Summary | grep -E "I:|Peak:"

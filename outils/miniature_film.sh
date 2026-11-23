@@ -9,7 +9,7 @@ AIDE
 exit 0;; esac
 set -u
 O=$(cd "$(dirname "$0")" && pwd); A="bash $O/atelier_colab.sh"; export COLAB_SESSION=${COLAB_SESSION:-atelier}
-E=$(realpath "$1"); C=$(basename "$E" | sed -E 's/^([LFS][0-9]{3})-.*/\1/'); OUT=$E/09-export/$C-miniature.jpg; log() { echo "$(date +%H:%M) $*"; }
+E=$(realpath "$1"); C=$(basename "$E" | sed -E 's/^([LFS][0-9]{3})-.*/\1/'); [[ $C =~ ^[LFS][0-9]{3}$ ]] || { echo "ERREUR : le dossier doit s'appeler L001-…, F001-… ou S001-… (trouvé : $C)"; exit 2; }; OUT=$E/09-export/$C-miniature.jpg; log() { echo "$(date +%H:%M) $*"; }
 timeout 60 "$HOME/.local/bin/colab" stop -s "$COLAB_SESSION" >/dev/null 2>&1; log "machine sans carte"; CPU=1 $A start | tail -1
 $A envoie "$E/05-rendu/film" | tail -1; log "image"
 $A lance "$E" "node ~/agence-video/outils/image.mjs 05-rendu/film 0 09-export/$C-miniature.jpg --q 'thumb=1' --size 1920x1080 2>&1 | tail -3"
