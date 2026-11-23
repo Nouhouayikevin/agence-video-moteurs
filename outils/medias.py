@@ -7,11 +7,12 @@ usage : python3 outils/medias.py <dossier de l'épisode> [id …]      (sans id 
 L'annuaire est un tableau Markdown dont les lignes commencent par un identifiant entre accents graves :
 | `speed-fin` | https://www.youtube.com/watch?v=… | 5:09:30 | 5:17:00 | vidéo | ce qu'on voit | à quoi il sert | source/licence |
   - début/fin : le passage utile (h:mm:ss ou m:ss) ; « — » = tout le fichier (images, petites vidéos) ;
-  - type : vidéo (yt-dlp, passage seul, 1080p au plus) ou image (téléchargée telle quelle).
+  - type : vidéo (yt-dlp, passage seul, 1080p au plus), image (téléchargée telle quelle) ou capture (une page web prise en photo par
+    outils/capture.mjs, gardée dans l'épisode : 01-recherche/sources/captures/<id>.png, recopiée ici ; le lien dit d'où elle vient).
 Les fichiers vont dans ~/agence-medias/<chaîne>/<CODE>/<id>.<ext> : hors de Git, mais pas dans /tmp (effacé au redémarrage).
 Un fichier déjà là n'est jamais retéléchargé. Le passage est coupé sur une image clé : la coupe exacte se fait au montage.
 """
-import os, re, sys, subprocess, urllib.request
+import shutil, os, re, sys, subprocess, urllib.request
 
 def table(ep):
     rows = []
@@ -33,9 +34,13 @@ def dest(ep):
 def existing(d, i):
     return [f for f in os.listdir(d) if f.rsplit('.', 1)[0] == i and not f.endswith(('.part', '.ytdl'))]
 
-def get(r, d):
+def get(r, d, ep):
     if not re.match(r'^https?://', r['url']):   # the directory is read from a file: only web links, never an option or a local path
         print('lien refusé (http ou https seulement) :', r['url']); return 1
+    if r['type'].startswith('capture'):
+        src = os.path.join(ep, '01-recherche', 'sources', 'captures', r['id'] + '.png')
+        if not os.path.exists(src): print('capture absente (refaire avec outils/capture.mjs) :', src); return 1
+        shutil.copy(src, d); return 0
     if r['type'].startswith('image'):
         ext = os.path.splitext(r['url'].split('?')[0])[1] or '.jpg'
         req = urllib.request.Request(r['url'], headers={'User-Agent': 'Mozilla/5.0'})
@@ -62,5 +67,5 @@ if __name__ == '__main__':
         if rest and r['id'] not in rest: continue
         if existing(d, r['id']): continue
         print('télécharge', r['id'], r['debut'], r['fin'], flush=True)
-        if get(r, d) != 0 or not existing(d, r['id']): print('ÉCHEC', r['id'], flush=True); bad += 1
+        if get(r, d, ep) != 0 or not existing(d, r['id']): print('ÉCHEC', r['id'], flush=True); bad += 1
     print('fini :', d, '—', bad, 'échec(s)'); sys.exit(1 if bad else 0)
