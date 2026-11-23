@@ -1,6 +1,6 @@
 # Outils de Claude
 
-Des scripts pour les gestes qui reviennent à chaque vidéo (demande de Kev, 2026-11-08 : moins d'actions, moins de tokens). On les lance depuis la racine de l'agence, ou on donne leur chemin complet. **Chaque outil répond à `--help`** (son mode d'emploi, rien n'est lancé) : le lire au lieu d'ouvrir le code (Kev, 2026-11-20 : moins de tokens).
+Des scripts pour les gestes qui reviennent à chaque vidéo (demande de Kev, 2026-11-08 : moins d'actions, moins de tokens). On les lance depuis la racine de l'agence, ou on donne leur chemin complet. **Chaque outil répond à `--help`** (sans rien lancer ; `colab_lib.sh`, `voix_colab.py` et `whisper_colab.py` sont appelés par les autres, jamais seuls) (son mode d'emploi, rien n'est lancé) : le lire au lieu d'ouvrir le code (Kev, 2026-11-20 : moins de tokens).
 
 | Outil | Ce qu'il fait | Exemple |
 |---|---|---|
@@ -15,7 +15,7 @@ Des scripts pour les gestes qui reviennent à chaque vidéo (demande de Kev, 202
 | `changer_compte_colab.sh` | passe le Colab CLI sur un autre compte Google quand le quota de carte graphique est épuisé ; à lancer dans un onglet du Terminal, Kev se connecte et colle le code | `bash outils/changer_compte_colab.sh` |
 | `verif_gpu.sh` | dit en une ligne si Google donne une carte graphique maintenant (GPU OK / refusée / compte non connecté) ; `--changer` change d'abord de compte puis vérifie | `bash outils/verif_gpu.sh [--changer]` |
 | `copie_telephone.sh` | copie d'une vidéo finie sous 30 Mo pour le téléphone de Kev, faite sur une machine Google sans carte graphique | `bash outils/copie_telephone.sh <video.mp4> [sortie.mp4]` |
-| `rendu_morceaux.sh` | rend un long film par morceaux de 90 s sur Google (machines reprises au bout de ~12 min, réseau du PC qui coupe) ; relancé, il reprend où il s'est arrêté, puis recolle sans réencoder | `bash outils/rendu_morceaux.sh <film> <sortie.mp4> [LxH] [requête]` |
+| `rendu_morceaux.sh` | rend un long film (ou un extrait) par morceaux de 90 s sur Google (machines reprises au bout de ~12 min, réseau du PC qui coupe) ; relancé, il reprend où il s'est arrêté, puis recolle sans réencoder. **Pour REFAIRE une image : `REFAIRE=1`** (sinon il recolle les vieux morceaux ; il refuse de lui-même si le film a changé depuis, 2026-11-22) ; `--help` | `bash outils/rendu_morceaux.sh <film> <sortie.mp4> [LxH] [requête]` |
 | `voix_colab.sh` | voix maison + contrôle whisper sur la machine Google ; `--help` | `sh ~/agence-video/outils/voix_colab.sh fr` (depuis `03-voix/`) |
 | `bandes.py` | (sur l'atelier) bandes à 0,2 s (revue technique, étape 7) : une image par plan, 5 images par seconde | `python3 outils/bandes.py video.mp4 04-decoupage/decoupage.json 07-revue-technique/bandes` |
 | `rendu.sh` | (seulement si Google est indisponible) lance un long rendu sur le PC sans risque : 1 worker, garde batterie (rendu figé sous 25 % en décharge, repris à 40 %), mise en veille bloquée, température et batterie notées chaque minute dans `~/.cache/rendu-temp/` | `sh ~/agence-video/outils/rendu.sh sh 05-rendu/build.sh` |
@@ -25,6 +25,11 @@ Des scripts pour les gestes qui reviennent à chaque vidéo (demande de Kev, 202
 | `physique.mjs` | logique physique mesurée dans la 3D : deux personnes l'une dans l'autre, un corps dans un meuble, un objet au-dessus de quelqu'un, regroupé par plan (à vérifier ensuite sur les bandes) ; `--sans-image` : sans dessiner (machine sans carte graphique, si le film lit `window.NODRAW`) | `node outils/physique.mjs <film> --sans-image [--q 'v=1&ext=LSO1' --size 1080x1920]` |
 | `controle.sh` | contrôle des vidéos finies : durée, volume (−14 LUFS), images figées plus de 2,5 s, écrans noirs, poids | `sh outils/controle.sh L001/*.mp4` |
 | `planche.sh` | (sur l'atelier) planche de revue : une image toutes les N secondes (1,5 par défaut), 8 par ligne | `sh outils/planche.sh video.mp4 planche.jpg 1.5` |
+| `finir_lso.sh` | la finition de plusieurs LSO en une commande : vérifie la machine (sur la machine, pas sur un fichier), envoie l'épisode, `finir_atelier.sh` de chacun, `livrer.py` ; `--help` | `bash outils/finir_lso.sh nan_serieux/fr/episodes/F001-jensen-huang LSO1 LSO2` |
+| `miniature_film.sh` | la miniature 16:9 d'un film (scène `thumb`), sur la machine sans carte ; ramène `09-export/<CODE>-miniature.jpg` ; à regarder à l'œil (test de l'inconnu, MEMOIRE 39) ; `--help` | `bash outils/miniature_film.sh nan_serieux/fr/episodes/F001-jensen-huang` |
+| `controles_lso.sh` | sous-titres (`--croise --sans3d`) puis physique (`--sans-image --step 1`) d'un ou plusieurs LSO, sans carte graphique ; `--help` | `bash outils/controles_lso.sh nan_serieux/fr/episodes/F001-jensen-huang LSO1 LSO2` |
+| `recoller_son.sh` | image d'une vidéo récente + son d'une vidéo finie, sans réencoder (`ffmpeg -c copy`) ; refuse si les durées diffèrent ; évite d'envoyer un muet de plus de 300 Mo à Google ; `--help` | `bash outils/recoller_son.sh 05-rendu/F001-rendu-muet.mp4 F001/F001-jensen-huang.mp4 /tmp/nouveau.mp4` |
+| `enchaine.sh` | enchaîne des commandes dans un journal (une ligne par étape, arrêt à la première erreur) : plus de script jetable à chaque fois ; `--help` | `nohup bash outils/enchaine.sh /tmp/suite.log "LSO1::bash outils/finir_lso.sh … LSO1" &` |
 | `livrer.py` | range les livrables d'un épisode (`PRODUCTION.md`, « Le dossier d'un épisode ») et refuse de finir s'il manque une miniature, un `.srt`, un fichier de textes ou une section ALT ; ne touche jamais à un épisode terminé | `python3 outils/livrer.py nan_serieux/fr/episodes/L003-slug` |
 
 Quand une commande revient souvent à la main, elle devient un outil ici, et une ligne s'ajoute à ce tableau.
