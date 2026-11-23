@@ -34,6 +34,8 @@ def existing(d, i):
     return [f for f in os.listdir(d) if f.rsplit('.', 1)[0] == i and not f.endswith(('.part', '.ytdl'))]
 
 def get(r, d):
+    if not re.match(r'^https?://', r['url']):   # the directory is read from a file: only web links, never an option or a local path
+        print('lien refusé (http ou https seulement) :', r['url']); return 1
     if r['type'].startswith('image'):
         ext = os.path.splitext(r['url'].split('?')[0])[1] or '.jpg'
         req = urllib.request.Request(r['url'], headers={'User-Agent': 'Mozilla/5.0'})
@@ -44,7 +46,7 @@ def get(r, d):
            '-o', os.path.join(d, r['id'] + '.%(ext)s')]
     if r['debut'] not in ('—', '-', ''):
         cmd += ['--download-sections', f"*{r['debut']}-{r['fin']}"]
-    return subprocess.call(cmd + [r['url']])
+    return subprocess.call(cmd + ['--', r['url']])
 
 if __name__ == '__main__':
     a = sys.argv[1:]
