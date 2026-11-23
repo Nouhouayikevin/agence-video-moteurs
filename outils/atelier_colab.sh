@@ -32,7 +32,8 @@ rel() { local p; [ -e "$1" ] || { echo "ERREUR : $1 n'existe pas ici (chemin rel
 cmd=$1; shift
 case "$cmd" in
 start)
-  # CPU=1: a machine without graphics card (sound, whisper is slower, no 3D) — it can run beside the GPU machine that renders
+  # CPU=1: a machine without graphics card (sound, whisper is slower, NO 3D: a 3D frame there takes over 30 s, the render stops, F002 2026-11-23) — it can run beside the GPU machine that renders
+  # T4 : LEMO_ANGLE=vulkan by default in « lance » (Chrome's default ANGLE loses the WebGL context there : black stills, F002 2026-11-23)
   "$C" sessions 2>&1 | grep -q "\[$S\]" || { if [ "$CPU" = 1 ]; then o=$("$C" new -s $S 2>&1); else o=$("$C" new -s $S --gpu T4 2>&1); fi; echo "$o" | tail -1
     echo "$o" | grep -q READY || { echo "ERREUR : Google refuse la machine ($(echo "$o" | grep -o 'Service Unavailable' | head -1)) : quota épuisé ? → bash outils/changer_compte_colab.sh, ou CPU=1 pour une machine sans carte"; exit 1; }; }   # stop at once (2026-11-20: it went on into 3 useless tries)
   SETUP=$(ls -d ~/.claude/plugins/cache/*/lemo-opuscar/*/skills/lemo-opuscar/scripts/setup.sh | head -1)
@@ -46,6 +47,7 @@ echo '{"file_format_version":"1.0.0","ICD":{"library_path":"/usr/lib64-nvidia/li
 echo "== Lemo"; LEMO_OPUSCAR_HOME=/root/lemo-opuscar sh /content/setup.sh | tail -1; LEMO_OPUSCAR_HOME=/root/lemo-opuscar sh /content/setup.sh deps 2>&1 | tail -2
 (cd /root/lemo-opuscar && sh tools/fetch.sh instruments all 2>&1 | tail -1)
 (cd /root/lemo-opuscar && npx playwright-core install-deps chromium >/dev/null 2>&1) || { echo 'Chrome : bibliothèques système ratées'; exit 1; }   # setup.sh deps does not add them (libatk missing: no still, no thumbnail)
+pip -q install -U yt-dlp 2>&1 | tail -1; mkdir -p /root/.local/bin && ln -sf "$(command -v yt-dlp)" /root/.local/bin/yt-dlp   # medias.py calls ~/.local/bin/yt-dlp (F002, 2026-11-23 : « No such file or directory: '/root/.local/bin/yt-dlp' »)
 echo "== whisper"; pip -q install faster-whisper nvidia-cublas-cu12 'nvidia-cudnn-cu12==9.*' 2>&1 | tail -1
 echo "== Earshot"; [ -d /root/earshot ] || git clone -q https://github.com/Leonxlnx/earshot /root/earshot
 cd /root/earshot && python3 -m pip install -q -e ".[mcp,llm,dev]" 2>&1 | tail -1   # Colab's python (no venv module there): ~/earshot/.venv/bin/python points to it
@@ -73,7 +75,7 @@ envoie)
 lance)
   d=$(rel "$1") || exit 2; shift; c=${1//$HOME\//\/root\/};   # a PC path ($HOME/…) becomes the same path there (/root/…) L=/root/$d/atelier.log   # LD_LIBRARY_PATH: the T4 driver's Vulkan, for the stills (thumbnails) of the episode scripts
   echo "== là-bas, dans ~/$d : $c"
-  cjob "lance$$" "export LD_LIBRARY_PATH=/usr/lib64-nvidia:\$LD_LIBRARY_PATH; [ -e /dev/nvidia0 ] || export LEMO_ANGLE=swiftshader; cd /root/$d && ( $c )" ;;   # detached there: the PC never waits on a connection (2026-11-19)
+  cjob "lance$$" "export LD_LIBRARY_PATH=/usr/lib64-nvidia:\$LD_LIBRARY_PATH; if [ -e /dev/nvidia0 ]; then export LEMO_ANGLE=\${LEMO_ANGLE:-vulkan}; else export LEMO_ANGLE=swiftshader LEMO_SANS_CARTE=1; fi; cd /root/$d && ( $c )" ;;   # detached there: the PC never waits on a connection (2026-11-19)
 whisper)
   a=(); for d in "$@"; do a+=("/root/$(rel "$d")"); done
   "$C" upload -s $S "$R/outils/whisper_colab.py" /content/whisper_colab.py >/dev/null

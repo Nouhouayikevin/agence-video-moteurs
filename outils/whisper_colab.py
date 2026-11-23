@@ -18,7 +18,9 @@ model = WhisperModel('large-v3-turbo', device='cuda', compute_type='float16')
 jobs = [(f'{d}/phrases', f'{d}/phrases', f'{d}/controle-colab.txt') for d in sys.argv[1:]] or [('/content/voix/out', '/content/voix/phrases', '/content/voix/controle.txt')]
 for wavs, txts, res in jobs:
     with open(res, 'w') as out:
-        for f in sorted(glob.glob(f'{wavs}/*.wav')):
+        fs = sorted(glob.glob(f'{wavs}/*.wav'))
+        if not fs: sys.exit(f'ERREUR : aucune phrase dans {wavs} : « envoie » laisse les NNN.wav par défaut, envoyer 03-voix avec SANS=\'\' (F002, 2026-11-23)')
+        for f in fs:
             n = os.path.basename(f)[:-4]
             a, sr = sf.read(f, dtype='float32'); a = a.mean(1) if a.ndim > 1 else a; g = gcd(sr, 16000)
             segs, info = model.transcribe(resample_poly(a, 16000 // g, sr // g).astype('float32'), language=None, beam_size=5)   # numpy in: avoids PyAV (its version on Colab breaks decode_audio)
