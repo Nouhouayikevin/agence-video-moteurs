@@ -47,7 +47,7 @@ def get(r, d, ep):
         open(os.path.join(d, r['id'] + ext), 'wb').write(urllib.request.urlopen(req, timeout=60).read())
         return 0
     cmd = [os.path.expanduser('~/.local/bin/yt-dlp'), '--no-cookies', '-q', '--no-warnings', '--no-playlist',
-           '-f', 'bv*[height<=1080]+ba/b[height<=1080]/b', '--merge-output-format', 'mp4',
+           '-f', 'bv*[height<=1080][protocol=https]+ba[protocol=https]/b[height<=1080][protocol=https]/bv*[height<=1080]+ba/b'   # direct links first : with HLS, --download-sections reads the whole video (2026-11-24 : 20 min for 22 s, a clip without picture), '--merge-output-format', 'mp4',
            '-o', os.path.join(d, r['id'] + '.%(ext)s')]
     if r['debut'] not in ('—', '-', ''):
         cmd += ['--download-sections', f"*{r['debut']}-{r['fin']}"]
